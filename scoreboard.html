@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scoreboard</title>
+<style>
+  :root {
+    --bg: #101014;
+    --card: #1a1a20;
+    --card-hover: #202028;
+    --border: #2b2b33;
+    --text: #f4f2ec;
+    --muted: #8b8a92;
+    --gold: #f2b84b;
+    --error: #ff4d4d;
+    --success: #7ed492;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 3rem 1rem 2rem;
+    background:
+      radial-gradient(circle at 15% 0%, #201a12 0%, transparent 45%),
+      radial-gradient(circle at 85% 10%, #16181f 0%, transparent 40%),
+      var(--bg);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Top Bar mit Login */
+  .top-bar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 1rem 1.5rem;
+    z-index: 100;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .auth-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .auth-btn:hover { background: var(--card-hover); border-color: var(--gold); }
+  .auth-badge {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--success) 40%, transparent);
+    color: var(--success);
+    padding: 0.4rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* Login Overlay */
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 16, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .login-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .login-modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    width: 90%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+  }
+  .login-overlay.active .login-modal {
+    transform: scale(1);
+  }
+  .login-modal h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+  }
+  .login-modal .hint {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .input-group {
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+  .input-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+  }
+  .input-group input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus {
+    border-color: var(--gold);
+  }
+  .login-error {
+    color: var(--error);
+    font-size: 0.8rem;
+    margin: -0.5rem 0 1rem;
+    min-height: 1.2em;
+    font-weight: 600;
+  }
+  .login-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--gold);
+    color: #16130a;
+    border: none;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+  h1 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.35rem;
+    text-align: center;
+    background: linear-gradient(90deg,
+      #ff3b3b, #ff9d3b, #ffe23b, #3bff6e, #3bd4ff, #6e3bff, #ff3bd4, #ff3b3b);
+    background-size: 400% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: rainbow 6s linear infinite;
+  }
+  @keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 400% 50%; }
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 2.5rem;
+    text-align: center;
+  }
+  .board {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 0.85rem 1rem;
+    position: relative;
+    overflow: visible;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .row::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--rank-color, var(--gold));
+    border-radius: 18px 0 0 18px;
+  }
+  .row:hover { background: var(--card-hover); border-color: var(--rank-color, var(--gold)); }
+
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .melon-orbit {
+    position: absolute;
+    width: 94px;
+    height: 94px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: spin 10s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .melon-item {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    transform: rotate(calc(var(--i) * 45deg)) translateX(44px);
+  }
+  .avatar-ring {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--rank-color) 22%, transparent);
+    border: 2px solid var(--rank-color);
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+  }
+  .avatar-ring svg { width: 40px; height: 40px; display: block; }
+  .avatar-ring.leader {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--rank-color) 35%, transparent);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--rank-color) 35%, transparent); }
+    50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--rank-color) 20%, transparent); }
+  }
+  @keyframes spin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  .kfc-leg {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.4rem;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+    z-index: 3;
+    pointer-events: none;
+    animation: bounce 1.1s ease infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-6px); }
+  }
+
+  .info { flex: 1; min-width: 0; }
+  .name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 0.15rem;
+  }
+  .rank-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .score {
+    font-size: 1.7rem;
+    font-weight: 800;
+    min-width: 2.6ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.15s ease;
+  }
+  .score.bump { transform: scale(1.25); }
+
+  .plus-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gold);
+    color: #16130a;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, filter 0.15s ease, opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .plus-btn:hover { filter: brightness(1.1); }
+  .plus-btn:active { transform: scale(0.88); }
+  .plus-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: none;
+  }
+
+  .status {
+    margin-top: 1.75rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-align: center;
+    min-height: 1.2em;
+  }
+  .admin-only {
+    display: none;
+  }
+  .admin-only.visible {
+    display: inline-block;
+  }
+  .guest-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div id="authBadge" class="auth-badge" style="display:none;">
+      <span>✓</span> Admin
+    </div>
+    <button id="authBtn" class="auth-btn">🔒 Login</button>
+  </div>
+
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-modal">
+      <h2>Login</h2>
+      <p class="hint"></p>
+      <div class="input-group">
+        <label>Benutzername</label>
+        <input type="text" id="loginUser" value="admin" readonly>
+      </div>
+      <div class="input-group">
+        <label>Passwort</label>
+        <input type="password" id="loginPass" placeholder="••••••">
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <div class="login-actions">
+        <button class="btn-primary" id="doLogin">Einloggen</button>
+        <button class="btn-ghost" id="guestLogin">Als Gast ansehen</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="eyebrow"></p>
+  <h1>RACISM SCORE OF THE DAY</h1>
+  <p class="subtitle"></p>
+
+  <div class="board" id="board"></div>
+  <p class="status" id="status">Lade Punktestand …</p>
+  <p class="guest-int" id="guestHint"></p>
+  <button class="reset-btn admin-only" id="resetBtn" type="button">Alle auf 0 zurücksetzen</button>
+
+<script>
+  const PLAYERS = [
+    { name: "Luca", color: "#f2b84b" },
+    { name: "Ali", color: "#6fb3ff" },
+    { name: "Alex", color: "#7ed492" }
+  ];
+
+  // SHA-256 von "admin" (nicht im Klartext!)
+  const ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+  const STORAGE_KEY = "scoreboard:scores";
+  const AUTH_KEY = "scoreboard:auth";
+  let scores = {};
+  let isAdmin = false;
+
+  // --- Auth System ---
+  async function sha256(str) {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function checkAuth() {
+    return localStorage.getItem(AUTH_KEY) === '1';
+  }
+
+  function setAuth(v) {
+    isAdmin = v;
+    if (v) localStorage.setItem(AUTH_KEY, '1');
+    else localStorage.removeItem(AUTH_KEY);
+    updateAuthUI();
+  }
+
+  function updateAuthUI() {
+    const badge = document.getElementById('authBadge');
+    const btn = document.getElementById('authBtn');
+    const overlay = document.getElementById('loginOverlay');
+    const guestHint = document.getElementById('guestHint');
+    const adminOnly = document.querySelectorAll('.admin-only');
+
+    if (isAdmin) {
+      badge.style.display = 'flex';
+      btn.innerHTML = '<span>🚪</span> Logout';
+      overlay.classList.remove('active');
+      guestHint.style.display = 'none';
+      adminOnly.forEach(el => el.classList.add('visible'));
+    } else {
+      badge.style.display = 'none';
+      btn.innerHTML = '🔒 Login';
+      guestHint.style.display = 'block';
+      adminOnly.forEach(el => el.classList.remove('visible'));
+    }
+
+    // Re-render board to update button states
+    render();
+  }
+
+  document.getElementById('authBtn').addEventListener('click', () => {
+    if (isAdmin) {
+      setAuth(false);
+    } else {
+      document.getElementById('loginOverlay').classList.add('active');
+      document.getElementById('loginPass').focus();
+    }
+  });
+
+  document.getElementById('guestLogin').addEventListener('click', () => {
+    document.getElementById('loginOverlay').classList.remove('active');
+  });
+
+  document.getElementById('doLogin').addEventListener('click', async () => {
+    const pass = document.getElementById('loginPass').value;
+    const errorEl = document.getElementById('loginError');
+    const hash = await sha256(pass);
+    if (hash === ADMIN_HASH) {
+      errorEl.textContent = '';
+      document.getElementById('loginPass').value = '';
+      setAuth(true);
+    } else {
+      errorEl.textContent = 'Falsches Passwort!';
+      document.getElementById('loginPass').value = '';
+    }
+  });
+
+  document.getElementById('loginPass').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('doLogin').click();
+  });
+
+  // --- Scoreboard System ---
+  function getAvatar(rank) {
+    let skin, hair, accent;
+    if (rank === 0) {
+      skin = "#2d1f14"; hair = "#0a0706"; accent = "#3d2817";
+    } else if (rank === 1) {
+      skin = "#8d5524"; hair = "#1f120b"; accent = "#a66a35";
+    } else {
+      skin = "#f5d0b0"; hair = "#332211"; accent = "#e0b89e";
+    }
+
+    return `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="50" fill="${accent}"/>
+        <ellipse cx="50" cy="60" rx="24" ry="27" fill="${skin}"/>
+        <path d="M20 34c8-10 18-14 30-14s22 4 30 14c-6-2-10 2-10 6-6-6-16-8-20-8s-14 2-20 8c0-4-4-8-10-6z" fill="${hair}"/>
+        <path d="M18 38c-6 6-8 16-6 26 3-3 4-16 6-26z" fill="${hair}"/>
+        <path d="M82 38c6 6 8 16 6 26-3-3-4-16-6-26z" fill="${hair}"/>
+        <circle cx="30" cy="40" r="4" fill="${hair}"/>
+        <circle cx="70" cy="40" r="4" fill="${hair}"/>
+        ${rank === 2 ? `
+        <circle cx="42" cy="28" r="3" fill="${hair}"/>
+        <circle cx="58" cy="28" r="3" fill="${hair}"/>
+        ` : ''}
+        <ellipse cx="40" cy="62" rx="3.2" ry="4" fill="#1a1210"/>
+        <ellipse cx="60" cy="62" rx="3.2" ry="4" fill="#1a1210"/>
+        <path d="M41 78c3 3 15 3 18 0" stroke="#1a1210" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        ${rank === 2 ? `
+        <path d="M33 52c2-3 6-4 9-2" stroke="#1a1210" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M67 52c-2-3-6-4-9-2" stroke="#1a1210" stroke-width="2" fill="none" stroke-linecap="round"/>
+        ` : ''}
+      </svg>`;
+  }
+
+  const board = document.getElementById("board");
+  const statusEl = document.getElementById("status");
+
+  function sortedPlayers() {
+    return [...PLAYERS].sort((a, b) => (scores[b.name] || 0) - (scores[a.name] || 0));
+  }
+
+  function render(bumpName) {
+    board.innerHTML = "";
+    const sorted = sortedPlayers();
+
+    sorted.forEach((p, i) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.setProperty("--rank-color", p.color);
+
+      const isLeader = i === 0 && (scores[p.name] || 0) > 0;
+      const avatarSvg = getAvatar(i);
+
+      const avatarWrap = document.createElement("div");
+      avatarWrap.className = "avatar-wrap";
+
+      if (isLeader) {
+        const orbit = document.createElement("div");
+        orbit.className = "melon-orbit";
+        for (let idx = 0; idx < 8; idx++) {
+          const m = document.createElement("div");
+          m.className = "melon-item";
+          m.style.setProperty("--i", idx);
+          m.textContent = "🍉";
+          orbit.appendChild(m);
+        }
+        avatarWrap.appendChild(orbit);
+
+        const kfc = document.createElement("span");
+        kfc.className = "kfc-leg";
+        kfc.textContent = "🍗";
+        avatarWrap.appendChild(kfc);
+      }
+
+      const ring = document.createElement("div");
+      ring.className = "avatar-ring" + (isLeader ? " leader" : "");
+      ring.innerHTML = avatarSvg;
+      avatarWrap.appendChild(ring);
+
+      const info = document.createElement("div");
+      info.className = "info";
+      const nameEl = document.createElement("p");
+      nameEl.className = "name";
+      nameEl.textContent = p.name;
+      const rankEl = document.createElement("p");
+      rankEl.className = "rank-label";
+      rankEl.textContent = "Platz " + (i + 1);
+      info.append(nameEl, rankEl);
+
+      const scoreEl = document.createElement("div");
+      scoreEl.className = "score" + (p.name === bumpName ? " bump" : "");
+      scoreEl.textContent = scores[p.name] ?? 0;
+      setTimeout(() => scoreEl.classList.remove("bump"), 200);
+
+      const btn = document.createElement("button");
+      btn.className = "plus-btn";
+      btn.type = "button";
+      btn.disabled = !isAdmin;
+      btn.setAttribute("aria-label", "Punkt für " + p.name + " hinzufügen");
+      btn.textContent = "+";
+      if (isAdmin) {
+        btn.addEventListener("click", () => addPoint(p.name));
+      }
+
+      row.append(avatarWrap, info, scoreEl, btn);
+      board.appendChild(row);
+    });
+  }
+
+  async function loadScores() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      scores = raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      scores = {};
+    }
+    PLAYERS.forEach(p => { if (!(p.name in scores)) scores[p.name] = 0; });
+    isAdmin = checkAuth();
+    updateAuthUI();
+    render();
+    statusEl.textContent = "";
+  }
+
+  async function saveScores() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+      statusEl.textContent = "Gespeichert.";
+    } catch (e) {
+      statusEl.textContent = "Speichern fehlgeschlagen.";
+    }
+    setTimeout(() => { statusEl.textContent = ""; }, 1400);
+  }
+
+  function addPoint(name) {
+    if (!isAdmin) return;
+    scores[name] = (scores[name] || 0) + 1;
+    render(name);
+    saveScores();
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", async () => {
+    if (!isAdmin) return;
+    PLAYERS.forEach(p => { scores[p.name] = 0; });
+    render();
+    await saveScores();
+  });
+
+  loadScores();
+</script>
+
+</body>
+</html>
