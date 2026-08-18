@@ -480,14 +480,32 @@
       iframe.style.cssText = "position:fixed; bottom:0; right:0; width:0; height:0; border:0; opacity:0; pointer-events:none;";
       document.body.appendChild(iframe);
 
-      document.removeEventListener('click', start);
-      document.removeEventListener('keydown', start);
-      document.removeEventListener('touchstart', start);
+      const events = [
+        { target: document, event: 'click' },
+        { target: document, event: 'keydown' },
+        { target: document, event: 'touchstart' },
+        { target: document, event: 'mousemove' },
+        { target: document, event: 'mousedown' },
+        { target: window, event: 'wheel' },
+        { target: window, event: 'scroll' }
+      ];
+      events.forEach(({target, event}) => {
+        target.removeEventListener(event, start);
+      });
     };
 
-    document.addEventListener('click', start, { once: true });
-    document.addEventListener('keydown', start, { once: true });
-    document.addEventListener('touchstart', start, { once: true });
+    const events = [
+      { target: document, event: 'click' },
+      { target: document, event: 'keydown' },
+      { target: document, event: 'touchstart' },
+      { target: document, event: 'mousemove' },
+      { target: document, event: 'mousedown' },
+      { target: window, event: 'wheel' },
+      { target: window, event: 'scroll' }
+    ];
+    events.forEach(({target, event}) => {
+      target.addEventListener(event, start, { once: true, passive: true });
+    });
   }
 
   function createBackground() {
