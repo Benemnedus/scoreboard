@@ -22,19 +22,36 @@
     margin: 0;
     min-height: 100vh;
     padding: 3rem 1rem 2rem;
-    background:
-      radial-gradient(circle at 15% 0%, #201a12 0%, transparent 45%),
-      radial-gradient(circle at 85% 10%, #16181f 0%, transparent 40%),
-      var(--bg);
     font-family: "Helvetica Neue", Arial, sans-serif;
     color: var(--text);
     display: flex;
     flex-direction: column;
     align-items: center;
     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">🍌</text></svg>') 16 16, auto;
+    background: var(--bg);
+    position: relative;
   }
   button, a, input, select, textarea, .plus-btn {
     cursor: inherit;
+  }
+
+  #bg-pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 150px);
+    grid-auto-rows: 150px;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .bg-cell {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   .eyebrow {
@@ -44,6 +61,7 @@
     color: var(--gold);
     font-weight: 700;
     margin: 0 0 0.5rem;
+    z-index: 1;
   }
   h1 {
     font-size: 2.1rem;
@@ -58,6 +76,7 @@
     background-clip: text;
     color: transparent;
     animation: rainbow 6s linear infinite;
+    z-index: 1;
   }
   @keyframes rainbow {
     0% { background-position: 0% 50%; }
@@ -68,6 +87,7 @@
     font-size: 0.85rem;
     margin: 0 0 2.5rem;
     text-align: center;
+    z-index: 1;
   }
   .board {
     width: 100%;
@@ -75,6 +95,12 @@
     display: flex;
     flex-direction: column;
     gap: 0.9rem;
+    border: 2px solid var(--gold);
+    border-radius: 24px;
+    padding: 1.5rem 1rem;
+    background: rgba(16,16,20,0.85);
+    box-shadow: 0 0 30px rgba(242,184,75,0.3);
+    z-index: 1;
   }
   .row {
     display: flex;
@@ -225,6 +251,7 @@
     color: var(--muted);
     text-align: center;
     min-height: 1.2em;
+    z-index: 1;
   }
 
   #monkeyContainer {
@@ -265,6 +292,8 @@
 </head>
 <body>
 
+  <div id="bg-pattern"></div>
+
   <p class="eyebrow"></p>
   <h1>RACISM SCORE OF THE DAY</h1>
   <p class="subtitle"></p>
@@ -282,6 +311,18 @@
   ];
 
   let scores = {};
+
+  const gifUrls = [
+    "https://i.giphy.com/z8pi6Q8wTxuFO.webp",
+    "https://i.giphy.com/SDeVLvFCqFsSA.webp",
+    "https://i.giphy.com/9A51YP5RfEaM2PjiNP.webp",
+    "https://i.giphy.com/wtNOUuCzFKcaA.webp",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTlqd3V6MGptM2VoNzRlNGJhYWdrODJ4bTZmeWZ6ZHFsZ3QxNm84YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/6g3WkZ1rzDeIkkik1r/200.webp",
+    "https://i.giphy.com/qPZ64DDFAUQU0.webp",
+    "https://media0.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3aXVocjQweHZodTY4Z2RuanQyb2lkbm12dHVpNjJnZXM4OW1xNnJoNCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/To3fpw7TJWD6g/200.webp",
+    "https://media.tenor.com/I0n7w-UIzycAAAAM/arangutan-monkey.gif",
+    "https://www.icegif.com/wp-content/uploads/2022/10/icegif-1227.gif"
+  ];
 
   function getAvatar(rank) {
     let skin, hair, accent;
@@ -449,6 +490,27 @@
     document.addEventListener('touchstart', start, { once: true });
   }
 
+  function createBackground() {
+    const bgContainer = document.getElementById('bg-pattern');
+    const cellSize = 150;
+    const cols = Math.ceil(window.innerWidth / cellSize) + 2;
+    const rows = Math.ceil(window.innerHeight / cellSize) + 2;
+
+    bgContainer.innerHTML = '';
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'bg-cell';
+        const url = gifUrls[Math.floor(Math.random() * gifUrls.length)];
+        cell.style.backgroundImage = `url('${url}')`;
+        bgContainer.appendChild(cell);
+      }
+    }
+  }
+
+  window.addEventListener('resize', createBackground);
+
+  createBackground();
   createMonkeys();
   setupMusic();
   loadScores();
