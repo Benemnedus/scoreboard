@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scoreboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐒</text></svg>">
 <style>
   :root {
     --bg: #101014;
@@ -32,153 +33,9 @@
     align-items: center;
     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">🍌</text></svg>') 16 16, auto;
   }
-  button, a, input, select, textarea, .plus-btn, .auth-btn, .btn-primary, .btn-ghost {
+  button, a, input, select, textarea, .plus-btn {
     cursor: inherit;
   }
-
-  .top-bar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    padding: 1rem 1.5rem;
-    z-index: 100;
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-  }
-  .auth-btn {
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .auth-btn:hover { background: var(--card-hover); border-color: var(--gold); }
-  .auth-badge {
-    background: color-mix(in srgb, var(--success) 15%, transparent);
-    border: 1px solid color-mix(in srgb, var(--success) 40%, transparent);
-    color: var(--success);
-    padding: 0.4rem 0.9rem;
-    border-radius: 12px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .login-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 10, 16, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-  .login-overlay.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-  .login-modal {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 2.5rem 2rem;
-    width: 90%;
-    max-width: 360px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    transform: scale(0.95);
-    transition: transform 0.3s ease;
-  }
-  .login-overlay.active .login-modal {
-    transform: scale(1);
-  }
-  .login-modal h2 {
-    margin: 0 0 0.25rem;
-    font-size: 1.5rem;
-  }
-  .login-modal .hint {
-    color: var(--muted);
-    font-size: 0.8rem;
-    margin-bottom: 1.5rem;
-  }
-  .input-group {
-    margin-bottom: 1rem;
-    text-align: left;
-  }
-  .input-group label {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-bottom: 0.35rem;
-    font-weight: 600;
-  }
-  .input-group input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    color: var(--text);
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .input-group input:focus {
-    border-color: var(--gold);
-  }
-  .login-error {
-    color: var(--error);
-    font-size: 0.8rem;
-    margin: -0.5rem 0 1rem;
-    min-height: 1.2em;
-    font-weight: 600;
-  }
-  .login-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-  .btn-primary {
-    width: 100%;
-    padding: 0.85rem;
-    background: var(--gold);
-    color: #16130a;
-    border: none;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: filter 0.15s;
-  }
-  .btn-primary:hover { filter: brightness(1.1); }
-  .btn-ghost {
-    width: 100%;
-    padding: 0.75rem;
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
 
   .eyebrow {
     font-size: 0.7rem;
@@ -369,21 +226,7 @@
     text-align: center;
     min-height: 1.2em;
   }
-  .admin-only {
-    display: none;
-  }
-  .admin-only.visible {
-    display: inline-block;
-  }
-  .guest-hint {
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.75rem;
-    margin-top: 0.5rem;
-    font-style: italic;
-  }
 
-  /* ===== STYLES FÜR AFFEN ===== */
   #monkeyContainer {
     position: fixed;
     inset: 0;
@@ -422,43 +265,13 @@
 </head>
 <body>
 
-  <div class="top-bar">
-    <div id="authBadge" class="auth-badge" style="display:none;">
-      <span>✓</span> Admin
-    </div>
-    <button id="authBtn" class="auth-btn">🔒 Login</button>
-  </div>
-
-  <div class="login-overlay" id="loginOverlay">
-    <div class="login-modal">
-      <h2>Login</h2>
-      <p class="hint"></p>
-      <div class="input-group">
-        <label>Benutzername</label>
-        <input type="text" id="loginUser" value="admin" readonly>
-      </div>
-      <div class="input-group">
-        <label>Passwort</label>
-        <input type="password" id="loginPass" placeholder="••••••">
-      </div>
-      <div class="login-error" id="loginError"></div>
-      <div class="login-actions">
-        <button class="btn-primary" id="doLogin">Einloggen</button>
-        <button class="btn-ghost" id="guestLogin">Als Gast ansehen</button>
-      </div>
-    </div>
-  </div>
-
   <p class="eyebrow"></p>
   <h1>RACISM SCORE OF THE DAY</h1>
   <p class="subtitle"></p>
 
   <div class="board" id="board"></div>
   <p class="status" id="status">Lade Punktestand …</p>
-  <p class="guest-int" id="guestHint"></p>
-  <button class="reset-btn admin-only" id="resetBtn" type="button">Alle auf 0 zurücksetzen</button>
 
-  <!-- Container für tanzende Affen -->
   <div id="monkeyContainer"></div>
 
 <script>
@@ -468,83 +281,7 @@
     { name: "Alex", color: "#7ed492" }
   ];
 
-  // SHA-256 von "admin" (nicht im Klartext!)
-  const ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
-  const AUTH_KEY = "scoreboard:auth";
   let scores = {};
-  let isAdmin = false;
-
-  // --- Auth System ---
-  async function sha256(str) {
-    const buf = new TextEncoder().encode(str);
-    const hash = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  function checkAuth() {
-    return localStorage.getItem(AUTH_KEY) === '1';
-  }
-
-  function setAuth(v) {
-    isAdmin = v;
-    if (v) localStorage.setItem(AUTH_KEY, '1');
-    else localStorage.removeItem(AUTH_KEY);
-    updateAuthUI();
-  }
-
-  function updateAuthUI() {
-    const badge = document.getElementById('authBadge');
-    const btn = document.getElementById('authBtn');
-    const overlay = document.getElementById('loginOverlay');
-    const guestHint = document.getElementById('guestHint');
-    const adminOnly = document.querySelectorAll('.admin-only');
-
-    if (isAdmin) {
-      badge.style.display = 'flex';
-      btn.innerHTML = '<span>🚪</span> Logout';
-      overlay.classList.remove('active');
-      guestHint.style.display = 'none';
-      adminOnly.forEach(el => el.classList.add('visible'));
-    } else {
-      badge.style.display = 'none';
-      btn.innerHTML = '🔒 Login';
-      guestHint.style.display = 'block';
-      adminOnly.forEach(el => el.classList.remove('visible'));
-    }
-
-    render();
-  }
-
-  document.getElementById('authBtn').addEventListener('click', () => {
-    if (isAdmin) {
-      setAuth(false);
-    } else {
-      document.getElementById('loginOverlay').classList.add('active');
-      document.getElementById('loginPass').focus();
-    }
-  });
-
-  document.getElementById('guestLogin').addEventListener('click', () => {
-    document.getElementById('loginOverlay').classList.remove('active');
-  });
-
-  document.getElementById('doLogin').addEventListener('click', async () => {
-    const pass = document.getElementById('loginPass').value;
-    const errorEl = document.getElementById('loginError');
-    const hash = await sha256(pass);
-    if (hash === ADMIN_HASH) {
-      errorEl.textContent = '';
-      document.getElementById('loginPass').value = '';
-      setAuth(true);
-    } else {
-      errorEl.textContent = 'Falsches Passwort!';
-      document.getElementById('loginPass').value = '';
-    }
-  });
-
-  document.getElementById('loginPass').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') document.getElementById('doLogin').click();
-  });
 
   function getAvatar(rank) {
     let skin, hair, accent;
@@ -657,17 +394,9 @@
       "Luca": 20,
       "Alex": 40
     };
-    isAdmin = checkAuth();
-    updateAuthUI();
     render();
     statusEl.textContent = "";
   }
-
-
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    statusEl.textContent = "Punktzahlen sind fest eingestellt.";
-    setTimeout(() => { statusEl.textContent = ""; }, 1400);
-  });
 
   function createMonkeys() {
     const container = document.getElementById('monkeyContainer');
