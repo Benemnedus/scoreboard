@@ -43,6 +43,8 @@
     height: 100%;
     z-index: -1;
     display: grid;
+    grid-template-columns: repeat(auto-fill, 150px);
+    grid-auto-rows: 150px;
     pointer-events: none;
     overflow: hidden;
   }
@@ -429,9 +431,9 @@
 
   function loadScores() {
     scores = {
-      "Ali": 50,
+      "Ali": 51,
       "Luca": 20,
-      "Alex": 40
+      "Alex": 50
     };
     render();
     statusEl.textContent = "";
@@ -439,7 +441,7 @@
 
   function createMonkeys() {
     const container = document.getElementById('monkeyContainer');
-    const emojis = ['🐒', '🐵', '🙈', '🙉', '🙊'];
+    const emojis = ['🐒', '🐵', '🙈', '🙉', '🙊', '🍉', '🍌', '🍗'];
     const count = 8;
 
     for (let i = 0; i < count; i++) {
@@ -478,44 +480,23 @@
       iframe.style.cssText = "position:fixed; bottom:0; right:0; width:0; height:0; border:0; opacity:0; pointer-events:none;";
       document.body.appendChild(iframe);
 
-      const events = [
-        { target: document, event: 'click' },
-        { target: document, event: 'keydown' },
-        { target: document, event: 'touchstart' },
-        { target: document, event: 'mousemove' },
-        { target: document, event: 'mousedown' },
-        { target: window, event: 'wheel' },
-        { target: window, event: 'scroll' }
-      ];
-      events.forEach(({target, event}) => {
-        target.removeEventListener(event, start);
-      });
+      document.removeEventListener('click', start);
+      document.removeEventListener('keydown', start);
+      document.removeEventListener('touchstart', start);
     };
 
-    const events = [
-      { target: document, event: 'click' },
-      { target: document, event: 'keydown' },
-      { target: document, event: 'touchstart' },
-      { target: document, event: 'mousemove' },
-      { target: document, event: 'mousedown' },
-      { target: window, event: 'wheel' },
-      { target: window, event: 'scroll' }
-    ];
-    events.forEach(({target, event}) => {
-      target.addEventListener(event, start, { once: true, passive: true });
-    });
+    document.addEventListener('click', start, { once: true });
+    document.addEventListener('keydown', start, { once: true });
+    document.addEventListener('touchstart', start, { once: true });
   }
 
   function createBackground() {
     const bgContainer = document.getElementById('bg-pattern');
     const cellSize = 150;
-    const cols = Math.max(1, Math.floor(window.innerWidth / cellSize));
-    const rows = Math.max(1, Math.ceil(window.innerHeight / cellSize));
+    const cols = Math.ceil(window.innerWidth / cellSize) + 2;
+    const rows = Math.ceil(window.innerHeight / cellSize) + 2;
 
-    bgContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    bgContainer.style.gridAutoRows = `${cellSize}px`;
     bgContainer.innerHTML = '';
-
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = document.createElement('div');
